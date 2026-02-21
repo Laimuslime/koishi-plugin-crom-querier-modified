@@ -1,0 +1,28 @@
+{
+  "name": "koishi-plugin-crom-querier-modified",
+  "description": "向crom查询并返回文本的插件，自用",
+  "version": "2.0.6",
+  "main": "lib/index.js",
+  "typings": "lib/index.d.ts",
+  "files": [
+    "lib",
+    "dist"
+  ],
+  "license": "MIT",
+  "homepage": "https://github.com/WindyPear-Team/koishi-plugin-crom-querier-modified",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/WindyPeat-Team/koishi-plugin-crom-querier-modified.git"
+  },
+  "keywords": [
+    "chatbot",
+    "koishi",
+    "plugin"
+  ],
+  "peerDependencies": {
+    "koishi": "^4.18.7"
+  },
+  "dependencies": {
+    "@satorijs/element": "^3.1.8"
+  }
+}
