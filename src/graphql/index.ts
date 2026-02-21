@@ -3,7 +3,7 @@ const gql = (query: TemplateStringsArray, ...substitutions: unknown[]): string =
 export const queries = {
   titleQuery: gql`
     query titleQuery($anyBaseUrl: [String], $query: String) {
-      articles(wiki: $anyBaseUrl, titleKeyword: $query, page: 1, pageSize: 10) {
+      articles(wiki: $anyBaseUrl, titleKeyword: $query, page: 1, pageSize: 20) {
         nodes {
           title
           url
