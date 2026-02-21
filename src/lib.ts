@@ -5,7 +5,6 @@ const apiList: string[] = [
 ];
 
 export const branchInfo: Record<string, { wiki: string }> = {
-  // br
   "ubmh": { wiki: "ubmh" },
   "scp-cloud": { wiki: "scp-wiki-cloud" },
   "cloud": { wiki: "backroom-wiki-cn" },
@@ -18,16 +17,27 @@ export const branchInfo: Record<string, { wiki: string }> = {
   "rpc": { wiki: "rpc-wiki-cn" },
 };
 
-// export function getShortBranchName(fullUrl: string): string | null {
-//   for (const branch in branchInfo) {
-//     if (branchInfo[branch].url === fullUrl) {
-//       return branch;
-//     }
-//   }
-//   return null;
-// }
+function levenshtein(a: string, b: string): number {
+  const matrix = Array.from({ length: a.length + 1 }, () => Array(b.length + 1).fill(0));
 
-export async function cromApiRequest(
+  for (let i = 0; i <= a.length; i++) matrix[i][0] = i;
+  for (let j = 0; j <= b.length; j++) matrix[0][j] = j;
+
+  for (let i = 1; i <= a.length; i++) {
+    for (let j = 1; j <= b.length; j++) {
+      const cost = a[i - 1] === b[j - 1] ? 0 : 1;
+      matrix[i][j] = Math.min(
+        matrix[i - 1][j] + 1, 
+        matrix[i][j - 1] + 1, 
+        matrix[i - 1][j - 1] + cost 
+      );
+    }
+  }
+
+  return matrix[a.length][b.length];
+}
+
+export async function wikitApiRequest(
   param: string,
   name: string,
   endpointIndex: number = 0,
@@ -40,7 +50,6 @@ export async function cromApiRequest(
   let variables: Record<string, any> = {};
   const branchLongName: string | null = branchInfo[name]?.wiki;
 
-  // Dynamically build variables based on the queryString
   if (queryString.includes("query titleQuery")) {
     variables = { query: param, anyBaseUrl: branchLongName ? [branchLongName] : null };
   } else if (queryString.includes("query userQuery")) {
@@ -53,10 +62,7 @@ export async function cromApiRequest(
     const response: Response = await fetch(apiList[endpointIndex], {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        query: queryString,
-        variables: variables,
-      }),
+      body: JSON.stringify({ query: queryString, variables }),
     });
 
     if (!response.ok) {
@@ -66,18 +72,37 @@ export async function cromApiRequest(
     const { data, errors } = await response.json();
 
     if (errors && errors.length > 0) {
-      return await cromApiRequest(param, name, endpointIndex + 1, queryString);
+      return await wikitApiRequest(param, name, endpointIndex + 1, queryString);
+    }
+
+    if (queryString.includes("query titleQuery") && data.articles?.nodes?.length) {
+      const articles: Article[] = data.articles.nodes;
+
+      let bestArticle: Article | null = null;
+      let minDistance = Infinity;
+
+      for (const article of articles) {
+        const distance = levenshtein(param.toLowerCase(), article.title.toLowerCase());
+        if (distance <= 2 && distance < minDistance) {
+          minDistance = distance;
+          bestArticle = article;
+        }
+      }
+
+      if (bestArticle) {
+        return {
+          articles: { nodes: [bestArticle] }
+        } as TitleQueryResponse;
+      } else {
+        return { articles: { nodes: [] } } as TitleQueryResponse;
+      }
     }
 
     return data;
   } catch (error) {
     if (endpointIndex < apiList.length - 1) {
-      return await cromApiRequest(param, name, endpointIndex + 1, queryString);
+      return await wikitApiRequest(param, name, endpointIndex + 1, queryString);
     }
     throw error;
   }
 }
-
-// export function getBranchUrl(branch: string): string {
-//   return branchInfo[branch]?.url || "";
-// }
