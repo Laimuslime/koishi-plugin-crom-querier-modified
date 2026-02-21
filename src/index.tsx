@@ -1,7 +1,7 @@
 import { Context, Schema } from "koishi";
 import {} from "koishi-plugin-adapter-onebot";
 import { queries } from "./graphql";
-import { branchInfo, cromApiRequest } from "./lib";
+import { branchInfo, wikitApiRequest } from "./lib";
 
 import type { Event } from "@satorijs/protocol";
 import type { Argv, h, Session } from "koishi";
@@ -9,18 +9,18 @@ import type { Article, AuthorRank, TitleQueryResponse, UserQueryResponse, UserRa
 
 declare module "koishi" {
   interface Tables {
-    cromQuerier: CromQuerierTable;
+    wikitQuerier: WikitQuerierTable;
   }
 }
 
-interface CromQuerierTable {
+interface WikitQuerierTable {
   id?: number;
   platform: string;
   channelId: string;
   defaultBranch: string;
 }
 
-export const name: string = "crom-querier";
+export const name: string = "wikit-querier";
 
 export const inject: string[] = ["database"];
 
@@ -37,7 +37,7 @@ export const Config: Schema<Config> = Schema.object({
 }).description("禁止查询配置");
 
 export function apply(ctx: Context, config: Config): void {
-  ctx.model.extend("cromQuerier", {
+  ctx.model.extend("wikitQuerier", {
     id: "unsigned",
     platform: "string(64)",
     channelId: "string(64)",
@@ -79,7 +79,7 @@ export function apply(ctx: Context, config: Config): void {
       if (!branch || !Object.keys(branchInfo).includes(branch) || branch === "all") {
         return "分部名称不正确。";
       }
-      ctx.database.upsert("cromQuerier", [{ channelId, platform, defaultBranch: branch }], ["platform", "channelId"]);
+      ctx.database.upsert("wikitQuerier", [{ channelId, platform, defaultBranch: branch }], ["platform", "channelId"]);
       return `已将本群默认查询分部设置为: ${branch}`;
     });
 
@@ -131,7 +131,7 @@ export function apply(ctx: Context, config: Config): void {
       };
 
       try {
-        const result = await cromApiRequest(authorName, branch, 0, queryString);
+        const result = await wikitApiRequest(authorName, branch, 0, queryString);
         const response = <User object={result as UserQueryResponse & UserRankQueryResponse} />;
 
         const sentMessages = await argv.session.send(response);
@@ -194,7 +194,7 @@ export function apply(ctx: Context, config: Config): void {
       };
 
       try {
-        const result = await cromApiRequest(titleName, branch, 0, queries.titleQuery);
+        const result = await wikitApiRequest(titleName, branch, 0, queries.titleQuery);
         const response: h = <TitleProceed titleData={result as TitleQueryResponse} />;
 
         const sentMessages = await argv.session.send(response);
@@ -218,7 +218,7 @@ export function apply(ctx: Context, config: Config): void {
       }
       return false;
     } catch (error) {
-      ctx.logger("crom-querier").warn("检测或撤回消息失败:", error);
+      ctx.logger("wikit-querier").warn("检测或撤回消息失败:", error);
       return false;
     }
   };
