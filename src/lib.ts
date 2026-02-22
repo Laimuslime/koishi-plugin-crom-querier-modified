@@ -80,10 +80,15 @@ export async function wikitApiRequest(
 
       let bestArticle: Article | null = null;
       let minDistance = Infinity;
+      const maxDistance = Math.max(2, Math.ceil(param.length * 0.3));
 
       for (const article of articles) {
-        const distance = levenshtein(param.toLowerCase(), article.title.toLowerCase());
-        if (distance <= 2 && distance < minDistance) {
+        const distance = levenshtein(
+          param.toLowerCase(),
+          article.title.toLowerCase()
+        );
+        
+        if (distance <= maxDistance && distance < minDistance) {
           minDistance = distance;
           bestArticle = article;
         }
