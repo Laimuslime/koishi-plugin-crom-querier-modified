@@ -69,25 +69,21 @@ export function apply(ctx: Context, config: Config): void {
   let cmd = ctx.command('wikit')
 
   cmd
-    .subcommand("default-branch <分部名称:string>", "设置默认分部。")
-    .alias("默认分部")
-    .alias("默认")
-    .alias("db")
+    .subcommand("wikit-default-branch <分部名称:string>", "设置默认分部。")
+    .alias("wikit-db")
     .action(async (argv: Argv, branch: string): Promise<string> => {
       const platform: string = argv.session.event.platform;
       const channelId: string = argv.session.event.channel.id;
       if (!branch || !Object.keys(branchInfo).includes(branch) || branch === "all") {
         return "分部名称不正确。";
       }
-      ctx.database.upsert("wikitQuerier", [{ channelId, platform, defaultBranch: branch }], ["platform", "channelId"]);
+      ctx.database。upsert("wikitQuerier", [{ channelId, platform, defaultBranch: branch }], ["platform", "channelId"]);
       return `已将本群默认查询分部设置为: ${branch}`;
     });
 
   cmd
-    .subcommand("author <作者:string> [分部名称:string]", "查询作者信息。\n默认搜索后室中文站。")
-    .alias("作者")
-    .alias("作")
-    .alias("au")
+    .subcommand("wikit-author <作者:string> [分部名称:string]", "查询作者信息。\n默认搜索后室中文站。")
+    .alias("wikit-au")
     .action(async (argv: Argv, author: string, branch: string | undefined): Promise<h> => {
       // const branchUrl: string = await getBranchUrl(branch, argv.args.at(-1), argv.session.event);
 
@@ -144,10 +140,8 @@ export function apply(ctx: Context, config: Config): void {
     });
 
   cmd
-    .subcommand("search <标题:string> [分部名称:string]", "查询文章信息。\n默认搜索后室中文站。")
-    .alias("搜索")
-    .alias("搜")
-    .alias("sr")
+    .subcommand("wikit-search <标题:string> [分部名称:string]", "查询文章信息。\n默认搜索后室中文站。")
+    .alias("wikit-sr")
     .action(async (argv: Argv, title: string, branch: string | undefined): Promise<h> => {
       // const branchUrl = await getBranchUrl(branch, argv.args.at(-1), argv.session.event);
       const titleName: string =
