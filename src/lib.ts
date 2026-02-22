@@ -9,7 +9,7 @@ export const branchInfo: Record<string, { wiki: string }> = {
   "scp-cloud": { wiki: "scp-wiki-cloud" },
   "cloud": { wiki: "backroom-wiki-cn" },
   "scr": { wiki: "scr-wiki" },
-  "deep": { wiki: "deep-forest-club" },
+  "dfc": { wiki: "deep-forest-club" },
   "rule": { wiki: "rule-wiki" },
   "as": { wiki: "asbackroom" },
   "lm": { wiki: "lostmedia" },
