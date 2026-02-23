@@ -77,30 +77,25 @@ export async function wikitApiRequest(
 
     if (queryString.includes("query titleQuery") && data.articles?.nodes?.length) {
       const articles: Article[] = data.articles.nodes;
-
-      let bestArticle: Article | null = null;
+      const lowerParam = param.toLowerCase();
+      et bestArticle: Article | null = null;
       let minDistance = Infinity;
-      const maxDistance = Math.max(2, Math.ceil(param.length * 0.3));
-
       for (const article of articles) {
-        const distance = levenshtein(
-          param.toLowerCase(),
-          article.title.toLowerCase()
-        );
-        
-        if (distance <= maxDistance && distance < minDistance) {
-          minDistance = distance;
-          bestArticle = article;
-        }
+         const distance = levenshtein(
+           lowerParam,
+           article.title.toLowerCase()
+         );
+         if (distance < minDistance) {
+           minDistance = distance;
+           bestArticle = article;
+         }
       }
-
       if (bestArticle) {
         return {
           articles: { nodes: [bestArticle] }
         } as TitleQueryResponse;
-      } else {
-        return { articles: { nodes: [] } } as TitleQueryResponse;
       }
+      return { articles: { nodes: [] } } as TitleQueryResponse;
     }
 
     return data;
