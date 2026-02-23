@@ -103,6 +103,7 @@ export function apply(ctx: Context, config: Config): void {
       // const branchUrl: string = await getBranchUrl(branch, argv.args.at(-1), argv.session.event);
 
       const isRankQuery: boolean = /^#[0-9]{1,15}$/.test(author);
+      const rankNumber: number | null = isRankQuery ? Number(author.slice(1)) : null;
       const queryString: string = isRankQuery ? queries.userRankQuery : queries.userQuery;
 
       const authorName: string =
@@ -121,16 +122,23 @@ export function apply(ctx: Context, config: Config): void {
           return <template>未找到用户。</template>;
         }
 
-        const selectedIndex: number = dataArray.findIndex(
-          (user: AuthorRank): boolean => !config.bannedUsers.some((banned: string): boolean => user.name === banned),
-        );
-
-        if (selectedIndex === -1) {
-          return <template>未找到符合条件的用户。</template>;
+        let user: AuthorRank | undefined;
+        if (rankNumber !== null) {
+          user = dataArray.find(
+            (u) =>
+              u.rank === rankNumber &&
+              !config.bannedUsers.includes(u.name)
+          );
+        } else {
+          user = dataArray.find(
+            (u) =>
+              !config.bannedUsers.includes(u.name)
+          );
         }
-
-        const user: AuthorRank = dataArray[selectedIndex];
-
+        if (!user) {
+          return <template>未找到用户。</template>;
+        }
+        
         return (
           <template>
             <quote id={argv.session.event.message.id} />
