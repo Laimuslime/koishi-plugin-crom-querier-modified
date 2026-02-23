@@ -49,7 +49,22 @@ export function apply(ctx: Context, config: Config): void {
       .replace(/^https?:\/\/backrooms-wiki-cn.wikidot.com/, "https://brcn.backroomswiki.cn")
       .replace(/^https?:\/\/scp-wiki-cn.wikidot.com/, "https://scpcn.backroomswiki.cn")
       .replace(/^https?:\/\/([a-z]+-wiki-cn|nationarea)/, "https://$1");
+  
+  const getDefaultBranch = async (session: Session): Promise<string | undefined> => {
+    const platform = session.event.platform;
+    const channelId = session.event.channel.id;
 
+    const data = await ctx.database.get("wikitQuerier", {
+      platform,
+      channelId,
+    });
+
+    if (data.length > 0) {
+      return data[0].defaultBranch;
+    }
+
+    return undefined;
+  };
   // const getBranchUrl = async (
   //   branch: string | undefined,
   //   lastStr: string | undefined,
@@ -77,7 +92,7 @@ export function apply(ctx: Context, config: Config): void {
       if (!branch || !Object.keys(branchInfo).includes(branch) || branch === "all") {
         return "分部名称不正确。";
       }
-      ctx.database。upsert("wikitQuerier", [{ channelId, platform, defaultBranch: branch }], ["platform", "channelId"]);
+      ctx.database.upsert("wikitQuerier", [{ channelId, platform, defaultBranch: branch }], ["platform", "channelId"]);
       return `已将本群默认查询分部设置为: ${branch}`;
     });
 
@@ -127,7 +142,11 @@ export function apply(ctx: Context, config: Config): void {
       };
 
       try {
-        const result = await wikitApiRequest(authorName, branch, 0, queryString);
+        let finalBranch = branch;
+        if (!finalBranch) {
+          finalBranch = await getDefaultBranch(argv.session);
+        }
+        const result = await wikitApiRequest(authorName, finalBranch, 0, queryString);
         const response = <User object={result as UserQueryResponse & UserRankQueryResponse} />;
 
         const sentMessages = await argv.session.send(response);
@@ -152,7 +171,7 @@ export function apply(ctx: Context, config: Config): void {
         : title;
 
       const Author = ({ authorName }: { authorName: string }): h => {
-        return <template>作者：{authorName || "未知"}</template>;
+        return <template>作者：{authorName || "已注销用户"}</template>;
       };
 
       const TitleProceed = ({ titleData }: { titleData: TitleQueryResponse }): h => {
@@ -188,6 +207,10 @@ export function apply(ctx: Context, config: Config): void {
       };
 
       try {
+        let finalBranch = branch;
+        if (!finalBranch) {
+           finalBranch = await getDefaultBranch(argv.session);
+        }
         const result = await wikitApiRequest(titleName, branch, 0, queries.titleQuery);
         const response: h = <TitleProceed titleData={result as TitleQueryResponse} />;
 
