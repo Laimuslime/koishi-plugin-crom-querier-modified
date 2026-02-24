@@ -5,6 +5,7 @@ const apiList: string[] = [
 ];
 
 export const branchInfo: Record<string, { wiki: string }> = {
+  /* 分部名称格式："站点简写": { wiki: "Wikit里的Wiki全名" }, 例如："ubmh": { wiki: "ubmh" } */
   "ubmh": { wiki: "ubmh" },
   "scp-cloud": { wiki: "scp-wiki-cloud" },
   "cloud": { wiki: "backroom-wiki-cn" },
@@ -15,6 +16,8 @@ export const branchInfo: Record<string, { wiki: string }> = {
   "lm": { wiki: "lostmedia" },
   "if": { wiki: "if-backrooms" },
   "rpc": { wiki: "rpc-wiki-cn" },
+  "warma": { wiki: "warma-world" },
+  "fr": { wiki: "backrooms-split-library" },
 };
 
 function levenshtein(a: string, b: string): number {
