@@ -44,7 +44,7 @@ export async function wikitApiRequest(
   queryString: string,
 ): Promise<TitleQueryResponse | UserQueryResponse | UserRankQueryResponse> {
   if (endpointIndex >= apiList.length) {
-    throw new Error("所有API端点均已尝试但均失败");
+    throw new 错误("所有API端点均已尝试但均失败");
   }
 
   let variables: Record<string, any> = {};
@@ -66,7 +66,7 @@ export async function wikitApiRequest(
     });
 
     if (!response.ok) {
-      throw new Error(`请求失败，状态码: ${response.status}`);
+      throw new 错误(`请求失败，状态码: ${response.status}`);
     }
 
     const { data, errors } = await response.json();
@@ -78,7 +78,7 @@ export async function wikitApiRequest(
     if (queryString.includes("query titleQuery") && data.articles?.nodes?.length) {
       const articles: Article[] = data.articles.nodes;
       const lowerParam = param.toLowerCase();
-      et bestArticle: Article | null = null;
+      let bestArticle: Article | null = null;
       let minDistance = Infinity;
       for (const article of articles) {
          const distance = levenshtein(
