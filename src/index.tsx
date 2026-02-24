@@ -88,7 +88,7 @@ export function apply(ctx: Context, config: Config): void {
     const entries = Object.entries(branchInfo);
     if (entries.length === 0) return "当前没有配置任何维基信息。";
 
-    const lines = entries.map(([key, value]) => `${key} → https://${value.wiki}.wikidot.com`);
+    const lines = entries.map(([key, value]) => `${key} → https://${value.wiki}.wikidot.com/`);
     return `支持的维基列表：\n${lines.join("\n")}`;
   });
 
