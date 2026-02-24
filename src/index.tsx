@@ -82,6 +82,15 @@ export function apply(ctx: Context, config: Config): void {
   //   }
   // };
   let cmd = ctx.command('wikit')
+  cmd
+  .subcommand("wikit-list", "列出所有支持的网站及对应的地址。")
+  .action(async (argv: Argv): Promise<string> => {
+    const entries = Object.entries(branchInfo);
+    if (entries.length === 0) return "当前没有配置任何维基信息。";
+
+    const lines = entries.map(([key, value]) => `${key} → https://${value.wiki}.wikidot.com`);
+    return `支持的维基列表：\n${lines.join("\n")}`;
+  });
 
   cmd
     .subcommand("wikit-default-branch <分部名称:string>", "设置默认分部。")
