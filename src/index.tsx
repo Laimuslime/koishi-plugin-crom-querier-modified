@@ -108,7 +108,7 @@ export function apply(ctx: Context, config: Config): void {
   cmd
     .subcommand("wikit-author <作者:string> [分部名称:string]", "查询作者信息。\n默认搜索后室中文站。")
     .alias("wikit-au")
-    .action(async (argv: Argv, author: string, branch: string | undefined): Promise<h> => {
+    。action(async (argv: Argv, author: string, branch: string | undefined): Promise<h> => {
       // const branchUrl: string = await getBranchUrl(branch, argv.args.at(-1), argv.session.event);
 
       const isRankQuery: boolean = /^#[0-9]{1,15}$/.test(author);
@@ -166,12 +166,26 @@ export function apply(ctx: Context, config: Config): void {
         );
       };
 
-      try {
+try {
         let finalBranch = branch;
         if (!finalBranch) {
           finalBranch = await getDefaultBranch(argv.session);
         }
-        const result = await wikitApiRequest(authorName, finalBranch, 0, queryString);
+    
+        let result = await wikitApiRequest(authorName, finalBranch, 0, queryString);
+
+        if (isRankQuery && (result as UserRankQueryResponse).authorRanking) {
+          const rankData = result as UserRankQueryResponse;
+          
+          const matchedUser = rankData.authorRanking.find(
+            (u) => u.rank === rankNumber && !config.bannedUsers.includes(u.name)
+          );
+          
+          if (matchedUser) {
+            result = await wikitApiRequest(matchedUser.name, finalBranch, 0, queries.userQuery);
+          }
+        }
+
         const response = <User object={result as UserQueryResponse & UserRankQueryResponse} />;
 
         const sentMessages = await argv.session.send(response);
