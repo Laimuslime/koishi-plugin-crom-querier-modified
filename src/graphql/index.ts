@@ -20,17 +20,26 @@ export const queries = {
     }
   `,
   userQuery: gql`
-    query userQuery($query: String!, $baseUrl: String!) {
-      authorWikiRank(
-        wiki: $baseUrl
-        name: $query
-        by: RATING
-      ) {
-        rank
-        name
-        value
+  query userQuery($query: String!, $baseUrl: String!) {
+    authorWikiRank(
+      wiki: $baseUrl
+      name: $query
+      by: RATING
+    ) {
+      rank
+      name
+      value
+    }
+
+    articles(
+      author: $query
+      wiki: [$baseUrl]
+    ) {
+      pageInfo {
+        total
       }
     }
+  }
   `,
   userRankQuery: gql`
     query userRankQuery($baseUrl: String) {
@@ -42,3 +51,4 @@ export const queries = {
     }
   `,
 };
+
