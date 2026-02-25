@@ -44,6 +44,12 @@ export function apply(ctx: Context, config: Config): void {
     defaultBranch: "string(64)",
   });
 
+  const normalizeUrl = (url: string): string =>
+    url
+      .replace(/^https?:\/\/backrooms-wiki-cn.wikidot.com/, "https://brcn.backroomswiki.cn")
+      .replace(/^https?:\/\/scp-wiki-cn.wikidot.com/, "https://scpcn.backroomswiki.cn")
+      .replace(/^https?:\/\/([a-z]+-wiki-cn|nationarea)/, "https://$1");
+  
   const getDefaultBranch = async (session: Session): Promise<string | undefined> => {
     const platform = session.event.platform;
     const channelId = session.event.channel.id;
@@ -59,7 +65,22 @@ export function apply(ctx: Context, config: Config): void {
 
     return undefined;
   };
-  
+  // const getBranchUrl = async (
+  //   branch: string | undefined,
+  //   lastStr: string | undefined,
+  //   { platform, channel: { id: channelId } }: Event,
+  // ): Promise<string> => {
+  //   const branchUrls: CromQuerierTable[] = await ctx.database.get("cromQuerier", { platform, channelId });
+  //   if (Object.keys(branchInfo).includes(lastStr)) {
+  //     return branchInfo[lastStr].url;
+  //   } else if (branch && Object.keys(branchInfo).includes(branch)) {
+  //     return branchInfo[branch].url;
+  //   } else if (branchUrls.length > 0) {
+  //     return branchInfo[branchUrls[0].defaultBranch].url;
+  //   } else {
+  //     return branchInfo.cn.url;
+  //   }
+  // };
   let cmd = ctx.command('wikit')
   cmd
   .subcommand("wikit-list", "列出所有支持的网站及对应的地址。")
@@ -126,13 +147,21 @@ export function apply(ctx: Context, config: Config): void {
         if (!user) {
           return <template>未找到用户。</template>;
         }
-        
+
+        const total = object.articles?.pageInfo?.total ?? "未知";   
+        let average: string | number = "未知";
+        if (typeof total === "number" && total > 0) {
+          average = (user.value / total).toFixed(2); 
+        } else if (total === 0) {
+          average = 0;
+        }
+
         return (
           <template>
             <quote id={argv.session.event.message.id} />
             {user.name} (#{user.rank})
             <br />
-            总分：{user.value}
+            总分：{user.value} 页面数：{total} 平均分：{average}
           </template>
         );
       };
