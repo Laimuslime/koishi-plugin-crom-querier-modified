@@ -2,6 +2,7 @@ import type { Article, AuthorRank, TitleQueryResponse, UserQueryResponse, UserRa
 
 const apiList: string[] = [
   "https://wikit.unitreaty.org/apiv1/graphql",
+  "https://wikittest.unitreaty.org/apiv1/graphql",
 ];
 
 export const branchInfo: Record<string, { wiki: string }> = {
@@ -18,6 +19,7 @@ export const branchInfo: Record<string, { wiki: string }> = {
   "rpc": { wiki: "rpc-wiki-cn" },
   "warma": { wiki: "warma-world" },
   "fr": { wiki: "backrooms-split-library" },
+  "f": { wiki: "backrooms-f" },
 };
 
 function levenshtein(a: string, b: string): number {
@@ -47,18 +49,20 @@ export async function wikitApiRequest(
   queryString: string,
 ): Promise<TitleQueryResponse | UserQueryResponse | UserRankQueryResponse> {
   if (endpointIndex >= apiList.length) {
-    throw new 错误("所有API端点均已尝试但均失败");
+    throw new Error("所有API端点均已尝试但均失败");
   }
 
   let variables: Record<string, any> = {};
   const branchLongName: string | null = branchInfo[name]?.wiki;
 
-  if (queryString.includes("query titleQuery")) {
+   if (queryString.includes("query titleQuery")) {
     variables = { query: param, anyBaseUrl: branchLongName ? [branchLongName] : null };
   } else if (queryString.includes("query userQuery")) {
     variables = { query: param, baseUrl: branchLongName };
   } else if (queryString.includes("query userRankQuery")) {
     variables = { baseUrl: branchLongName };
+  } else if (queryString.includes("query userGlobalQuery")) {
+    variables = { query: param };
   }
 
   try {
@@ -69,7 +73,7 @@ export async function wikitApiRequest(
     });
 
     if (!response.ok) {
-      throw new 错误(`请求失败，状态码: ${response.status}`);
+      throw new Error(`请求失败，状态码: ${response.status}`);
     }
 
     const { data, errors } = await response.json();

@@ -105,26 +105,29 @@ export function apply(ctx: Context, config: Config): void {
       return `已将本群默认查询分部设置为: ${branch}`;
     });
 
-  cmd
+cmd
     .subcommand("wikit-author <作者:string> [分部名称:string]", "查询作者信息。\n默认搜索后室中文站。")
     .alias("wikit-au")
-    。action(async (argv: Argv, author: string, branch: string | undefined): Promise<h> => {
-      // const branchUrl: string = await getBranchUrl(branch, argv.args.at(-1), argv.session.event);
+    .action(async (argv: Argv, author: string, branch: string | undefined): Promise<h> => {
 
       const isRankQuery: boolean = /^#[0-9]{1,15}$/.test(author);
       const rankNumber: number | null = isRankQuery ? Number(author.slice(1)) : null;
-      const queryString: string = isRankQuery ? queries.userRankQuery : queries.userQuery;
+      let queryString: string = isRankQuery ? queries.userRankQuery : queries.userQuery;
 
+      // 1. 识别全站查询参数 all
+      const validBranches = ["all", ...Object.keys(branchInfo)];
       const authorName: string =
-        (branch && !Object.keys(branchInfo).includes(branch)) || !author ?
-          Object.keys(branchInfo).includes(argv.args.at(-1)) ?
+        (branch && !validBranches.includes(branch)) || !author ?
+          validBranches.includes(argv.args.at(-1)) ?
             argv.args.slice(0, -1).join(" ")
           : argv.args.join(" ")
         : author;
 
+      // 2. User 渲染组件（这里的 object 是参数，绝不能丢）
       const User = ({ object }: { object: UserQueryResponse & UserRankQueryResponse }): h => {
         const dataArray: AuthorRank[] = object.authorRanking ?
           object.authorRanking
+        : object.authorGlobalRank ? [object.authorGlobalRank] 
         : object.authorWikiRank ? [object.authorWikiRank] : [];
 
         if (!dataArray || dataArray.length === 0) {
@@ -147,8 +150,10 @@ export function apply(ctx: Context, config: Config): void {
         if (!user) {
           return <template>未找到用户。</template>;
         }
-
-        const total = object.articles?.pageInfo?.total ?? "未知";   
+        
+        // 算出页面数和平均分
+        const total = object.articles?.pageInfo?.total ?? "未知"; 
+        
         let average: string | number = "未知";
         if (typeof total === "number" && total > 0) {
           average = (user.value / total).toFixed(2); 
@@ -166,23 +171,32 @@ export function apply(ctx: Context, config: Config): void {
         );
       };
 
-try {
+      // 3. 发送请求与拦截处理
+      try {
         let finalBranch = branch;
         if (!finalBranch) {
           finalBranch = await getDefaultBranch(argv.session);
         }
-    
+        
+        // 切换到全站查询
+        if (!finalBranch || finalBranch === "all") {
+          // 👇 加了判断：如果是查排名，继续用排名的 Query 拿全站排行榜；如果是查名字，再切换
+          queryString = isRankQuery ? queries.userRankQuery : queries.userGlobalQuery;
+          finalBranch = "all"; 
+        }
+
         let result = await wikitApiRequest(authorName, finalBranch, 0, queryString);
 
+        // 如果是查排名，偷偷发二次请求把页面数补齐
         if (isRankQuery && (result as UserRankQueryResponse).authorRanking) {
           const rankData = result as UserRankQueryResponse;
-          
           const matchedUser = rankData.authorRanking.find(
             (u) => u.rank === rankNumber && !config.bannedUsers.includes(u.name)
           );
-          
           if (matchedUser) {
-            result = await wikitApiRequest(matchedUser.name, finalBranch, 0, queries.userQuery);
+            // 查排名时，根据是否是全站自动切换查询语法
+            let secondQuery = (!finalBranch || finalBranch === "all") ? queries.userGlobalQuery : queries.userQuery;
+            result = await wikitApiRequest(matchedUser.name, finalBranch, 0, secondQuery);
           }
         }
 
