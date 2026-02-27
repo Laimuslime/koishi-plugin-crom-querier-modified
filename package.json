@@ -1,7 +1,7 @@
 {
   "name": "koishi-plugin-crom-querier-modified",
   "description": "向crom查询并返回文本的插件，自用",
-  "version": "2.1.7",
+  "version": "2.1.8",
   "main": "lib/index.js",
   "typings": "lib/index.d.ts",
   "files": [
