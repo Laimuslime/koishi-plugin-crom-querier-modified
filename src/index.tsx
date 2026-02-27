@@ -144,7 +144,7 @@ cmd
         } else {
           user = dataArray.find(
             (u) =>
-              !config.bannedUsers.includes(u.name)
+              !config.bannedUsers。includes(u.name)
           );
         }
         if (!user) {
@@ -264,7 +264,7 @@ cmd
         if (!finalBranch) {
            finalBranch = await getDefaultBranch(argv.session);
         }
-        const result = await wikitApiRequest(titleName, branch, 0, queries.titleQuery);
+        const result = await wikitApiRequest(titleName, finalBranch, 0, queries.titleQuery);
         const response: h = <TitleProceed titleData={result as TitleQueryResponse} />;
 
         const sentMessages = await argv.session.send(response);
