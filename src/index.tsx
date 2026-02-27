@@ -93,20 +93,20 @@ export function apply(ctx: Context, config: Config): void {
   });
 
   cmd
-    .subcommand("wikit-default-branch <分部名称:string>", "设置默认分部。")
+    .subcommand("wikit-default-branch <维基名称:string>", "设置默认维基。")
     .alias("wikit-db")
     .action(async (argv: Argv, branch: string): Promise<string> => {
       const platform: string = argv.session.event.platform;
       const channelId: string = argv.session.event.channel.id;
       if (!branch || !Object.keys(branchInfo).includes(branch) || branch === "all") {
-        return "分部名称不正确。";
+        return "维基名称不正确。";
       }
       ctx.database.upsert("wikitQuerier", [{ channelId, platform, defaultBranch: branch }], ["platform", "channelId"]);
-      return `已将本群默认查询分部设置为: ${branch}`;
+      return `已将本群默认查询维基设置为: ${branch}`;
     });
 
 cmd
-    .subcommand("wikit-author <作者:string> [分部名称:string]", "查询作者信息。\n默认搜索后室中文站。")
+    .subcommand("wikit-author <作者:string> [维基名称:string]", "查询作者信息。\n默认搜索所有支持的网站。")
     .alias("wikit-au")
     .action(async (argv: Argv, author: string, branch: string | undefined): Promise<h> => {
 
@@ -144,7 +144,7 @@ cmd
         } else {
           user = dataArray.find(
             (u) =>
-              !config.bannedUsers。includes(u.name)
+              !config.bannedUsers.includes(u.name)
           );
         }
         if (!user) {
@@ -212,7 +212,7 @@ cmd
     });
 
   cmd
-    .subcommand("wikit-search <标题:string> [分部名称:string]", "查询文章信息。\n默认搜索后室中文站。")
+    .subcommand("wikit-search <标题:string> [维基名称:string]", "查询文章信息。\n默认搜索所有支持的网站。")
     .alias("wikit-sr")
     .action(async (argv: Argv, title: string, branch: string | undefined): Promise<h> => {
       // const branchUrl = await getBranchUrl(branch, argv.args.at(-1), argv.session.event);
