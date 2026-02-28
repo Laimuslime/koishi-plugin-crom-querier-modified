@@ -112,7 +112,7 @@ cmd
 
       const isRankQuery: boolean = /^#[0-9]{1,15}$/.test(author);
       const rankNumber: number | null = isRankQuery ? Number(author.slice(1)) : null;
-      let queryString: string = isRankQuery ? queries.userRankQuery : queries.userGlobalQuery;
+      let queryString: string = isRankQuery ? queries.userRankQuery : queries.userQuery;
 
       // 1. 识别全站查询参数 all
       const validBranches = ["all", ...Object.keys(branchInfo)];
@@ -195,7 +195,7 @@ cmd
           );
           if (matchedUser) {
             // 查排名时，根据是否是全站自动切换查询语法
-            let secondQuery = (!finalBranch || finalBranch === "all") ? queries.userGlobalQuery : queries.userGlobalQuery;
+            let secondQuery = (!finalBranch || finalBranch === "all") ? queries.userGlobalQuery : queries.userQuery;
             result = await wikitApiRequest(matchedUser.name, finalBranch, 0, secondQuery);
           }
         }

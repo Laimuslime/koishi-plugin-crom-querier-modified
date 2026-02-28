@@ -19,27 +19,33 @@ export const queries = {
       }
     }
   `,
-  userGlobalQuery: gql`
-  query userQuery($query: String!, $baseUrl: String!) {
-    authorWikiRank(
-      wiki: $baseUrl
-      name: $query
-      by: RATING
-    ) {
-      rank
-      name
-      value
-    }
-
-    articles(
-      author: $query
-      wiki: [$baseUrl]
-    ) {
-      pageInfo {
-        total
+ userQuery: `
+    query userQuery($query: String!, $baseUrl: String!) {
+      authorWikiRank(wiki: $baseUrl, name: $query, by: RATING) {
+        rank
+        name
+        value
+      }
+      articles(author: $query, wiki: [$baseUrl]) {
+        pageInfo {
+          total
+        }
       }
     }
-  }
+  `,
+  userGlobalQuery: `
+    query userGlobalQuery($query: String!) {
+      authorGlobalRank(name: $query, by: RATING) {
+        rank
+        name
+        value
+      }
+      articles(author: $query) {
+        pageInfo {
+          total
+        }
+      }
+    }
   `,
   userRankQuery: gql`
     query userRankQuery($baseUrl: String) {
