@@ -19,7 +19,7 @@ export const queries = {
       }
     }
   `,
-  userQuery: gql`
+  userGlobalQuery: gql`
   query userQuery($query: String!, $baseUrl: String!) {
     authorWikiRank(
       wiki: $baseUrl
