@@ -18,6 +18,7 @@ export const branchInfo: Record<string, { wiki: string }> = {
   "if": { wiki: "if-backrooms" },
   "rpc": { wiki: "rpc-wiki-cn" },
   "warma": { wiki: "warma-world" },
+  "wop": { wiki: "write-on-paper" },
   "fr": { wiki: "backrooms-split-library" },
   "f": { wiki: "backrooms-f" },
 };
