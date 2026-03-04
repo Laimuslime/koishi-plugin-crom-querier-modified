@@ -51,7 +51,7 @@ export function apply(ctx: Context, config: Config): void {
     url
       .replace(/^https?:\/\/backrooms-wiki-cn.wikidot.com/, "https://brcn.backroomswiki.cn")
       .replace(/^https?:\/\/scp-wiki-cn.wikidot.com/, "https://scpcn.backroomswiki.cn")
-      。替换(/^https?:\/\/([a-z]+-wiki-cn|nationarea)/， "https://$1");
+      .replace(/^https?:\/\/([a-z]+-wiki-cn|nationarea)/, "https://$1");
   
   const getDefaultBranch = async (session: Session): Promise<string | undefined> => {
     const platform = session.event.platform;
@@ -63,7 +63,7 @@ export function apply(ctx: Context, config: Config): void {
   let cmd = ctx.command('wikit');
   
   cmd
-  。subcommand("wikit-list", "列出所有支持的网站。")
+  .subcommand("wikit-list", "列出所有支持的网站。")
   .action(async (): Promise<string> => {
     const entries = Object.entries(branchInfo);
     const lines = entries.map(([key, value]) => `${key} → https://${value.wiki}.wikidot.com/`);
@@ -207,14 +207,69 @@ cmd
     });
 
 cmd
-    。subcommand("wikit-info", "查看维基绑定信息")
+    .subcommand("wikit-info", "查看维基绑定信息")
     .alias("wikit-i")
     .option("qq", "-q <qq:string> 通过QQ号查询")
     .option("wd", "-w <wd:string> 通过Wikidot账号查询")
-    .action(async ({ session, options }): Promise<string> => {
+    .option("all", "-a 查询所有绑定记录(仅限代码指定用户)")
+    .action(async ({ session, options }): Promise<h> => {
       const senderId = session.userId;
       const messageId = session.messageId;
 
+      // 在这里添加允许使用 -a 指令的 QQ 号列表
+      const adminList = ["86599608"];
+
+      // 1. 处理查询全部绑定记录的逻辑 (-a)
+      if (options.all) {
+        if (!adminList.includes(senderId)) {
+          return <template><quote id={messageId} />权限不足，你无法使用查询所有记录的功能。</template>;
+        }
+
+        try {
+          const res = await fetch("https://wikit.unitreaty.org/module/bind-query?all=1");
+          const rawText = await res.text();
+          let resData;
+          try {
+            resData = JSON.parse(rawText);
+          } catch (e) {
+            return <template><quote id={messageId} />服务器返回异常：<br />{rawText}</template>;
+          }
+
+          if (resData.status === "success" && resData.data && Array.isArray(resData.data)) {
+            const list = resData.data;
+            
+            if (list.length === 0) {
+              return <template><quote id={messageId} />当前没有任何绑定记录。</template>;
+            }
+
+            const contentNode = (
+              <template>
+                全站绑定记录一览（共 {resData.count || list.length} 条）：<br />
+                {list.map((item: any) => {
+                  const bindTime = new Date(item.bind_time * 1000).toLocaleString("zh-CN", { timeZone: "Asia/Shanghai" });
+                  return <template>QQ: {item.qq} | ID: {item.id} | 时间: {bindTime}<br /></template>;
+                })}
+              </template>
+            );
+
+            // 如果全站绑定记录超过 20 条，则使用合并转发防止刷屏
+            if (list.length > 20) {
+              return (
+                <message forward>
+                  <message>{contentNode}</message>
+                </message>
+              );
+            }
+
+            return <template><quote id={messageId} />{contentNode}</template>;
+          }
+          return <template><quote id={messageId} />查询全部记录失败，未获取到有效数据。</template>;
+        } catch (err) {
+          return <template><quote id={messageId} />请求出错：{err.message}</template>;
+        }
+      }
+
+      // 2. 原有的普通查询逻辑 (-q 或 -w)
       let url = "";
       let queryType = "";
       let queryValue = "";
@@ -224,8 +279,8 @@ cmd
         queryType = "Wikidot账号";
         queryValue = options.wd;
         
-        if (config.bannedWikidots.includes(queryValue)) {
-          return `<quote id="${messageId}" /><at id="${senderId}" /> 该${queryType}已被列入黑名单，无法查询绑定信息。`;
+        if (config.bannedWikidots && config.bannedWikidots.includes(queryValue)) {
+          return <template><quote id={messageId} />该{queryType}已被列入黑名单，无法查询绑定信息。</template>;
         }
       } else {
         const targetQq = options.qq || senderId;
@@ -233,8 +288,8 @@ cmd
         queryType = "QQ号";
         queryValue = targetQq;
 
-        if (config.bannedQQs.includes(queryValue)) {
-          return `<quote id="${messageId}" /><at id="${senderId}" /> 该${queryType}已被列入黑名单，无法查询绑定信息。`;
+        if (config.bannedQQs && config.bannedQQs.includes(queryValue)) {
+          return <template><quote id={messageId} />该{queryType}已被列入黑名单，无法查询绑定信息。</template>;
         }
       }
 
@@ -246,45 +301,40 @@ cmd
         try {
           resData = JSON.parse(rawText);
         } catch (e) {
-          return `<quote id="${messageId}" /><at id="${senderId}" /> 查询失败，服务器返回异常：\n${rawText}`;
+          return <template><quote id={messageId} />查询失败，服务器返回异常：<br />{rawText}</template>;
         }
 
         if (resData.status === "success" && resData.data) {
           let info = resData.data;
 
-          // 兼容处理不同的返回结构
-          // 1. 如果后端返回的是数组，取第一项
           if (Array.isArray(info)) {
             info = info[0];
-          } 
-          // 2. 如果后端返回的是多套了一层的对象 (例如 {"86599608": {qq: "...", id: "..."}})
-          else if (typeof info === "object" && info !== null && !info.qq) {
+          } else if (typeof info === "object" && info !== null && !info.qq) {
             const keys = Object.keys(info);
             if (keys.length > 0) {
               info = info[keys[0]];
             }
           }
 
-          // 剥壳后如果依然找不到有效字段，说明查无此人
           if (!info || (!info.qq && !info.id)) {
-            return `<quote id="${messageId}" /><at id="${senderId}" /> 未查询到该 ${queryType} (${queryValue}) 的绑定记录。`;
+            return <template><quote id={messageId} />未查询到该 {queryType} ({queryValue}) 的绑定记录。</template>;
           }
 
           const bindTime = new Date(info.bind_time * 1000).toLocaleString("zh-CN", { timeZone: "Asia/Shanghai" });
           
-          return `<quote id="${messageId}" /><at id="${senderId}" /> 查询成功！\nQQ号：${info.qq}\n维基ID：${info.id}\n绑定时间：${bindTime}`;
+          return <template><quote id={messageId} />查询成功！<br />QQ号：{info.qq}<br />维基ID：{info.id}<br />绑定时间：{bindTime}</template>;
         } else {
-          return `<quote id="${messageId}" /><at id="${senderId}" /> 未查询到该 ${queryType} (${queryValue}) 的绑定记录。`;
+          return <template><quote id={messageId} />未查询到该 {queryType} ({queryValue}) 的绑定记录。</template>;
         }
       } catch (err) {
-        return `<quote id="${messageId}" /><at id="${senderId}" /> 请求出错：${err.message}`;
+        return <template><quote id={messageId} />请求出错：{err.message}</template>;
       }
     });
 
 
   cmd
     .subcommand("wikit-author <作者:string> [维基名称:string]", "查询作者。")
-    。alias("wikit-au")
+    .alias("wikit-au")
     .action(async (argv: Argv, author: string, branch: string | undefined): Promise<h> => {
       const isRankQuery = /^#[0-9]{1,15}$/.test(author);
       const rankNumber = isRankQuery ? Number(author.slice(1)) : null;
@@ -359,48 +409,68 @@ cmd
       }
     });
 cmd
-    .subcommand("wikit-self", "查询自己的全部作品与评分一览。")
+    .subcommand("wikit-self", "查询作品与评分一览。")
     .alias("wikit-sf")
-    .action(async ({ session }): Promise<h> => {
-      const qq = session.userId;
+    .option("qq", "-q <qq:string> 通过QQ号查询")
+    .option("wd", "-w <wd:string> 通过Wikidot账号查询")
+    .action(async ({ session, options }): Promise<h> => {
+      const senderId = session.userId;
       const messageId = session.messageId;
 
-      if (config.bannedQQs && config.bannedQQs.includes(qq)) {
-        return <template><quote id={messageId} />你的QQ号已被列入黑名单，无法查询。</template>;
+      let wikidotId = "";
+
+      // 1. 确定要查询的 Wikidot ID
+      if (options.wd) {
+        wikidotId = options.wd;
+        if (config.bannedWikidots && config.bannedWikidots.includes(wikidotId)) {
+          return <template><quote id={messageId} />该Wikidot账号已被列入黑名单，无法查询。</template>;
+        }
+      } else {
+        const targetQq = options.qq || senderId;
+        if (config.bannedQQs && config.bannedQQs.includes(targetQq)) {
+          return <template><quote id={messageId} />该QQ号已被列入黑名单，无法查询。</template>;
+        }
+
+        try {
+          const bindRes = await fetch(`https://wikit.unitreaty.org/module/bind-query?qq=${targetQq}`);
+          const bindText = await bindRes.text();
+          
+          let bindData;
+          try {
+            bindData = JSON.parse(bindText);
+          } catch (e) {
+            return <template><quote id={messageId} />绑定信息解析失败。</template>;
+          }
+
+          if (bindData.status !== "success" || !bindData.data) {
+            const errorMsg = options.qq ? `未查询到QQ ${targetQq} 的绑定记录。` : "未查询到你的绑定记录，请先绑定账号。";
+            return <template><quote id={messageId} />{errorMsg}</template>;
+          }
+
+          let infoList = Array.isArray(bindData.data) ? bindData.data : [bindData.data];
+          if (infoList.length === 0 || !infoList[0] || !infoList[0].id) {
+            return <template><quote id={messageId} />未查询到有效的绑定记录。</template>;
+          }
+
+          wikidotId = infoList[0].id;
+        } catch (err) {
+          return <template><quote id={messageId} />请求绑定接口出错：{err.message}</template>;
+        }
       }
 
+      // 2. 查询排名
+      let rankLines: string[] = [];
       try {
-        const bindRes = await fetch(`https://wikit.unitreaty.org/module/bind-query?qq=${qq}`);
-        const bindText = await bindRes.text();
-        
-        let bindData;
-        try {
-          bindData = JSON.parse(bindText);
-        } catch (e) {
-          return <template><quote id={messageId} />绑定信息解析失败。</template>;
-        }
+        const rankRes = await fetch(`https://wikit.unitreaty.org/wikidot/rank?user=${wikidotId}`);
+        const rankText = await rankRes.text();
+        const cleanText = rankText.replace(/<br\s*\/?>/gi, "\n").replace(/<[^>]+>/g, "");
+        rankLines = cleanText.trim().split("\n").filter(line => line.trim() !== "");
+      } catch (e) {
+        rankLines = ["排名信息获取失败。"];
+      }
 
-        if (bindData.status !== "success" || !bindData.data) {
-          return <template><quote id={messageId} />未查询到你的绑定记录，请先绑定账号。</template>;
-        }
-
-        let infoList = Array.isArray(bindData.data) ? bindData.data : [bindData.data];
-        if (infoList.length === 0 || !infoList[0] || !infoList[0].id) {
-          return <template><quote id={messageId} />未查询到有效的绑定记录。</template>;
-        }
-
-        const wikidotId = infoList[0].id;
-
-        let rankLines: string[] = [];
-        try {
-          const rankRes = await fetch(`https://wikit.unitreaty.org/wikidot/rank?user=${wikidotId}`);
-          const rankText = await rankRes.text();
-          const cleanText = rankText.replace(/<br\s*\/?>/gi, "\n").replace(/<[^>]+>/g, "");
-          rankLines = cleanText.trim().split("\n").filter(line => line.trim() !== "");
-        } catch (e) {
-          rankLines = ["排名信息获取失败。"];
-        }
-
+      // 3. 循环拉取所有作品
+      try {
         let allArticles: any[] = [];
         let currentPage = 1;
         let hasNextPage = true;
@@ -456,7 +526,7 @@ cmd
           );
         }
 
-        // 将要输出的核心内容提取为一个变量
+        // 拼接输出内容
         const contentNode = (
           <template>
             {rankLines.map((line: string) => <template>{line}<br /></template>)}
@@ -468,7 +538,7 @@ cmd
           </template>
         );
 
-        // 如果文章数大于 20，调用合并转发模式
+        // 如果文章数大于 20，调用合并转发
         if (validArticles.length > 20) {
           return (
             <message forward>
@@ -477,7 +547,7 @@ cmd
           );
         }
 
-        // 否则使用普通的引用回复模式
+        // 否则普通回复
         return (
           <template>
             <quote id={messageId} />
@@ -485,7 +555,7 @@ cmd
           </template>
         );
       } catch (err) {
-        return <template><quote id={messageId} />请求出错：{err.message}</template>;
+        return <template><quote id={messageId} />请求数据出错：{err.message}</template>;
       }
     });
 }
