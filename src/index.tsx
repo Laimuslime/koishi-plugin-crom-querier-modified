@@ -93,7 +93,7 @@ cmd
         return `<quote id="${messageId}" /><at id="${qq}" /> 你的QQ号已被列入黑名单，无法获取绑定链接。`;
       }
 
-      const token = "none";
+      const token = "NONE";
 
       try {
         const response = await fetch("https://wikit.unitreaty.org/module/qq-verify", {
@@ -178,7 +178,7 @@ cmd
         return `<quote id="${messageId}" /><at id="${qq}" /> 你的QQ号已被列入黑名单，无法进行解绑操作。`;
       }
 
-      const token = "none";
+      const token = "NONE";
 
       try {
         const response = await fetch("https://wikit.unitreaty.org/module/qq-unbind", {
@@ -207,7 +207,7 @@ cmd
     });
 
 cmd
-    .subcommand("wikit-info", "查看维基绑定信息")
+    。subcommand("wikit-info", "查看维基绑定信息")
     .alias("wikit-i")
     .option("qq", "-q <qq:string> 通过QQ号查询")
     .option("wd", "-w <wd:string> 通过Wikidot账号查询")
@@ -419,7 +419,7 @@ cmd
 
       let wikidotId = "";
 
-      // 1. 确定要查询的 Wikidot ID
+      // 1. 确定要查询的 Wikidot ID (恢复读取 Koishi 本地配置)
       if (options.wd) {
         wikidotId = options.wd;
         if (config.bannedWikidots && config.bannedWikidots.includes(wikidotId)) {
@@ -526,32 +526,51 @@ cmd
           );
         }
 
-        // 拼接输出内容
-        const contentNode = (
+        // 拼接输出内容头部
+        const headerNode = (
           <template>
             {rankLines.map((line: string) => <template>{line}<br /></template>)}
             <br />
-            {wikidotId} 的作品一览（共抓取 {validArticles.length} 篇）：<br />
-            {validArticles.map((a: any) => (
-              <template>{a.title} 评分：{a.rating} 所属维基：{a.wiki}<br /></template>
-            ))}
+            {wikidotId} 的作品一览（共抓取 {validArticles.length} 篇）：
           </template>
         );
 
-        // 如果文章数大于 20，调用合并转发
+        // 如果文章数大于 20，调用合并转发并进行分包处理 (解决卡死/吞消息问题)
         if (validArticles.length > 20) {
+          const chunkSize = 80;
+          const chunks = [];
+          for (let i = 0; i < validArticles.length; i += chunkSize) {
+            chunks.push(validArticles.slice(i, i + chunkSize));
+          }
+
           return (
             <message forward>
-              <message>{contentNode}</message>
+              {/* 第一条消息专门放头部统计 */}
+              <message>{headerNode}</message>
+              
+              {/* 后续消息循环输出分割好的文章列表 */}
+              {chunks.map((chunk: any[], index: number) => (
+                <message>
+                  <template>
+                    第 {index * chunkSize + 1} ~ {Math.min((index + 1) * chunkSize, validArticles.length)} 篇：<br />
+                    {chunk.map((a: any) => (
+                      <template>{a.title} 评分：{a.rating} 所属维基：{a.wiki}<br /></template>
+                    ))}
+                  </template>
+                </message>
+              ))}
             </message>
           );
         }
 
-        // 否则普通回复
+        // 少于等于20篇时，维持原本的普通引用回复
         return (
           <template>
             <quote id={messageId} />
-            {contentNode}
+            {headerNode}<br />
+            {validArticles.map((a: any) => (
+              <template>{a.title} 评分：{a.rating} 所属维基：{a.wiki}<br /></template>
+            ))}
           </template>
         );
       } catch (err) {
