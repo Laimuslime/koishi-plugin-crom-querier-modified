@@ -51,7 +51,7 @@ export function apply(ctx: Context, config: Config): void {
     url
       .replace(/^https?:\/\/backrooms-wiki-cn.wikidot.com/, "https://brcn.backroomswiki.cn")
       .replace(/^https?:\/\/scp-wiki-cn.wikidot.com/, "https://scpcn.backroomswiki.cn")
-      .replace(/^https?:\/\/([a-z]+-wiki-cn|nationarea)/, "https://$1");
+      。替换(/^https?:\/\/([a-z]+-wiki-cn|nationarea)/， "https://$1");
   
   const getDefaultBranch = async (session: Session): Promise<string | undefined> => {
     const platform = session.event.platform;
@@ -63,7 +63,7 @@ export function apply(ctx: Context, config: Config): void {
   let cmd = ctx.command('wikit');
   
   cmd
-  .subcommand("wikit-list", "列出所有支持的网站。")
+  。subcommand("wikit-list", "列出所有支持的网站。")
   .action(async (): Promise<string> => {
     const entries = Object.entries(branchInfo);
     const lines = entries.map(([key, value]) => `${key} → https://${value.wiki}.wikidot.com/`);
@@ -93,7 +93,7 @@ cmd
         return `<quote id="${messageId}" /><at id="${qq}" /> 你的QQ号已被列入黑名单，无法获取绑定链接。`;
       }
 
-      const token = "9a3f6c1d8e2b4a7f0c5d9e3b1a6f8c2d";
+      const token = "none";
 
       try {
         const response = await fetch("https://wikit.unitreaty.org/module/qq-verify", {
@@ -178,7 +178,7 @@ cmd
         return `<quote id="${messageId}" /><at id="${qq}" /> 你的QQ号已被列入黑名单，无法进行解绑操作。`;
       }
 
-      const token = "9a3f6c1d8e2b4a7f0c5d9e3b1a6f8c2d";
+      const token = "none";
 
       try {
         const response = await fetch("https://wikit.unitreaty.org/module/qq-unbind", {
@@ -207,7 +207,7 @@ cmd
     });
 
 cmd
-    .subcommand("wikit-info", "查看维基绑定信息")
+    。subcommand("wikit-info", "查看维基绑定信息")
     .alias("wikit-i")
     .option("qq", "-q <qq:string> 通过QQ号查询")
     .option("wd", "-w <wd:string> 通过Wikidot账号查询")
@@ -284,7 +284,7 @@ cmd
 
   cmd
     .subcommand("wikit-author <作者:string> [维基名称:string]", "查询作者。")
-    .alias("wikit-au")
+    。alias("wikit-au")
     .action(async (argv: Argv, author: string, branch: string | undefined): Promise<h> => {
       const isRankQuery = /^#[0-9]{1,15}$/.test(author);
       const rankNumber = isRankQuery ? Number(author.slice(1)) : null;
