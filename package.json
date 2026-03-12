@@ -1,5 +1,5 @@
 {
-  "name": "koishi-plugin-wikit-querier",
+  "name": "koishi-plugin-wikit-querier"，
   "description": "使用WikitAPI的wikidot站点工具，自用",
   "version": "1.8.8",
   "main": "dist/index.js",
@@ -14,7 +14,7 @@
     "url": "git+https://github.com/Laimuslime/koishi-plugin-wikit-querier.git"
   },
   "scripts": {
-    "build": "koishi-scripts build"
+    "build": "athena-scripts build"
   },
   "keywords": [
     "chatbot",
@@ -26,8 +26,8 @@
     "koishi-thirdeye": "^1.1.0"
   },
   "devDependencies": {
+    "athena-scripts": "^1.2.0",
     "koishi-plugin-adapter-onebot": "^6.9.0",
-    "koishi-scripts": "^4.5.1",
     "typescript": "^5.0.0"
   },
   "peerDependencies": {
