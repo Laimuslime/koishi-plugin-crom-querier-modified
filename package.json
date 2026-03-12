@@ -2,10 +2,10 @@
   "name": "koishi-plugin-wikit-querier",
   "description": "使用WikitAPI的wikidot站点工具，自用",
   "version": "1.8.9",
-  "main": "dist/index.js",
-  "typings": "dist/index.d.ts",
+  "main": "lib/index.js",
+  "typings": "lib/index.d.ts",
   "files": [
-    "dist"
+    "lib"
   ],
   "license": "MIT",
   "homepage": "https://github.com/Laimuslime/koishi-plugin-wikit-querier",
@@ -26,7 +26,7 @@
     "koishi-thirdeye": "latest"
   },
   "devDependencies": {
-    "@koishijs/scripts": "4.5.3",
+    "@koishijs/scripts": "4.5.2",
     "koishi-plugin-adapter-onebot": "latest",
     "typescript": "latest"
   },
