@@ -14,6 +14,11 @@
     "type": "git",
     "url": "git+https://github.com/Laimuslime/koishi-plugin-wikit-querier.git"
   },
+    "scripts": {
+    "dev": "cd ../.. && npm run dev",
+    "build": "cd ../.. && npm run build crom-querier",
+    "postpublish": "npm run build"
+  },
   "keywords": [
     "chatbot",
     "koishi",
