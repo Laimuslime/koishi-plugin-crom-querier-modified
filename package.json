@@ -14,7 +14,7 @@
     "url": "git+https://github.com/Laimuslime/koishi-plugin-wikit-querier.git"
   },
   "scripts": {
-    "build": "athena-scripts build"
+    "build": "koishi-scripts build"
   },
   "keywords": [
     "chatbot",
@@ -26,7 +26,7 @@
     "koishi-thirdeye": "^1.1.0"
   },
   "devDependencies": {
-    "athena-scripts": "^1.2.0",
+    "@koishijs/scripts": "^4.5.1",
     "koishi-plugin-adapter-onebot": "^6.9.0",
     "typescript": "^5.0.0"
   },
