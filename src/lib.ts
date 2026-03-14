@@ -56,13 +56,15 @@ export async function wikitApiRequest(
   let variables: Record<string, any> = {};
   const wikiLongName: string | null = WikiInfo[name]?.wiki;
 
-  if (queryString.includes("query titleQuery")) {
+ if (queryString.includes("query titleQuery")) {
     variables = { query: param, anyBaseWiki: wikiLongName ? [wikiLongName] : null };
   } else if (queryString.includes("query userQuery")) {
     variables = { query: param, baseWiki: wikiLongName };
   } else if (queryString.includes("query userRankQuery")) {
     variables = { baseWiki: wikiLongName }; 
   } else if (queryString.includes("query userGlobalQuery")) {
+    variables = { query: param };
+  }
 
   try {
     const response: Response = await fetch(apiList[endpointIndex], {
@@ -112,4 +114,3 @@ export async function wikitApiRequest(
     throw error;
   }
  }
-}
