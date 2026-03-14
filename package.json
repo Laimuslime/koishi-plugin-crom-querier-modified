@@ -1,7 +1,7 @@
 {
   "name": "koishi-plugin-wikit-querier",
   "description": "使用WikitAPI的wikidot站点工具，自用",
-  "version": "1.9.6",
+  "version": "1.9.7",
   "main": "lib/index.js",
   "typings": "lib/index.d.ts",
   "files": [
