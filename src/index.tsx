@@ -62,6 +62,10 @@ export function apply(ctx: Context, config: Config): void {
     platform: "string(64)",
     channelId: "string(64)",
     defaultWiki: "string(64)",
+  }, {
+    primary: 'id',
+    autoInc: true,
+    unique: [['platform', 'channelId']] 
   });
 
   const normalizeUrl = (url: string): string =>
@@ -103,7 +107,7 @@ export function apply(ctx: Context, config: Config): void {
   const fuzzyCache = new Map<string, { data: any[], expiresAt: number }>();
   const CACHE_TTL = 1000 * 60 * 60;
 
-  let cmd = ctx.command('wikit');
+  let cmd = ctx.command('wikit', 'Wikit 综合查询与管理工具');
 
   cmd.subcommand("wikit-diag", "网络连通性诊断测试")
     .action(async ({ session }): Promise<string> => {
