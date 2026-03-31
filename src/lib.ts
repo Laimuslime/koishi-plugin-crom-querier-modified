@@ -2,7 +2,9 @@ import type { Article, AuthorRank, TitleQueryResponse, UserQueryResponse, UserRa
 
 const apiList: string[] = [
   "https://wikit.unitreaty.org/apiv1/graphql",
+  "https://wikit2.brcnwiki.com/apiv1/graphql",
   "https://wikittest.unitreaty.org/apiv1/graphql",
+  
 ];
 
 export const WikiInfo: Record<string, { wiki: string }> = {
